@@ -36,7 +36,7 @@ pipeline {
                         sh "echo \"$DOCKER_PASSWORD\" | docker login -u \"$DOCKER_USERNAME\" --password-stdin"
                         // 일단은 로그인 없이 푸시 (공개 저장소라면 가능)
                         sh "docker push skyrius6732/insurance-project:latest"
-                        // 선택 사항 : 푸시 후 로그아웃(보안상 권장)
+                        // 선택 사항 : 푸시 후 로그아웃(보안상권장)
                         sh "docker logout"
                     }
 
