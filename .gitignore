@@ -1,0 +1,26 @@
+# Gradle
+.gradle/
+build/
+.DS_Store
+*.log
+*.bak
+*.swp
+.idea/
+.project
+.classpath
+.settings/
+bin/
+target/
+out/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.springBeans
+.apt_generated
+.factorypath
+.sts4-cache
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+!gradlew
+!gradlew.bat
