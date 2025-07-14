@@ -32,7 +32,7 @@ pipeline {
             steps {
                 script {
                     // Docker Hub에 로그인 (젠킨스 Credentials에 Docker Hub 자격 증명 추가 필요)
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'wjdgh@748053', usernameVariable: 'skyrius6732')]) {
                         sh "echo \"$DOCKER_PASSWORD\" | docker login -u \"$DOCKER_USERNAME\" --password-stdin"
                         sh "docker push skyrius6732/insurance-project:latest"
                     }
