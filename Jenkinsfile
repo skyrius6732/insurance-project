@@ -8,6 +8,9 @@ pipeline {
             }
         }
         stage('Build') {
+            tools {
+                jdk 'JDK17' // 젠킨스 Tools 설정에서 지정한 JDK 이름과 일치해야 합니다.
+            }
             steps {
                 sh 'chmod +x gradlew'
                 sh './gradlew clean build'
