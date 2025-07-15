@@ -146,8 +146,11 @@ pipeline {
             			}
         		}
         		"""
-                    // 호스트의 Nginx 설정 파일에 내용을 덮어씁니다.
-                    writeFile(file: "/home/skyrius/nginx/conf.d/insurance-project.conf", text: nginxConfContent)
+                    // 호스트의 Nginx 설정 파일에 내용을 덮어씁니다. (홈디렉토리 권한문제로 사용 x 호스트 -> 컨테이너)
+                    //writeFile(file: "/home/skyrius/nginx/conf.d/insurance-project.conf", text: nginxConfContent)
+
+                     // 이렇게 하면 Nginx 컨테이너의 마운트된 볼륨을 통해 호스트에도 반영됩니다.(컨테이너 -> 호스트)
+                    sh "echo \"\"\"${nginxConfContent}\"\"\" | docker exec -i nginx-proxy tee /etc/nginx/conf.d/insurance-project.conf"
 
                     // 5. Nginx 설정을 재로드하여 변경 사항을 적용합니다.
                     echo "Nginx 설정을 재로드합니다..."
