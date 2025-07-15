@@ -103,8 +103,8 @@ pipeline {
                     // 3. 새로운 컨테이너의 헬스 체크를 수행합니다.
                     echo "새로운 컨테이너 (${newContainerName})의 헬스 체크를 수행합니다..."
                     // Spring Boot 애플리케이션의 헬스 체크 URL (기본 경로 사용)
-                    def healthCheckUrl = "http://localhost:${newDeploymentPort}"
-                    def maxAttempts = 30 // 최대 시도 횟수
+                    def healthCheckUrl = "http://${newContainerName}:${newDeploymentPort}"
+                    def maxAttempts = 5 // 최대 시도 횟수
                     def attempt = 0
                     def healthy = false
 
