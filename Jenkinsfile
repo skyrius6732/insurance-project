@@ -63,7 +63,7 @@ pipeline {
                        // --name: 컨테이너 이름 지정
                        // --network: 'insurance-net' 네트워크에 연결
                        // -p 8080:8080: 호스트의 8080 포트를 컨테이너의 8080 포트에 매핑
-                       sh 'docker run -d --name insurance-project --network insurance-net -p 8080:8080 skyrius6732/insurance-project:latest'
+                       sh 'docker run -d --name insurance-project --network insurance-net -p 8081:8080 skyrius6732/insurance-project:latest'
                    }
                }
         }
