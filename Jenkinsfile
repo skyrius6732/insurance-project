@@ -53,6 +53,12 @@ pipeline {
                 script {
                     echo '--- Stage: Deploy (Zero-Downtime) ---'
 
+                    // 기존에 수동으로 실행되었을 수 있는 insurance-project 컨테이너를 정리합니다.
+                    // 이 컨테이너는 무중단 배포 로직에 의해 관리되지 않으므로,
+                    // 포트 충돌을 방지하기 위해 먼저 정리합니다.
+                    sh 'docker stop insurance-project || true'
+                    sh 'docker rm insurance-project || true'
+
                     // 현재 활성 포트를 저장할 파일 경로
                     def currentActivePortFile = "${WORKSPACE}/current_active_port.txt"
                     // 첫 배포 시 기본 활성 포트
