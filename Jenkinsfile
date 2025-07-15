@@ -44,18 +44,21 @@ pipeline {
             }
         }
         stage('Deploy') {
-            steps {
-                script {
-                    // 배포 서버(WSL2)에 SSH 접속하여 Docker 컨테이너 실행
-                    // 이 부분은 실제 환경에 따라 크게 달라집니다.
-                    // 예시:
-                    // sshagent(credentials: ['ssh-key-to-wsl2']) {
-                    //     sh "ssh user@wsl2-ip-address 'docker stop insurance-app || true && docker rm insurance-app || true && docker pull skyrius6732/insurance-project:latest && docker run -d --name insurance-app -p 8081:8080 skyrius6732/insurance-project:latest'"
-                    // }
-                    echo 'Deployment step - This needs to be configured based on your actual deployment strategy.'
-                    echo 'For now, manually deploy or configure SSH access to your WSL2 Docker environment.'
-                }
-            }
+               steps {
+                   script {
+                       // 기존 insurance-project 컨테이너가 실행 중이라면 중지하고 삭제합니다.
+                       // '|| true'는 컨테이너가 존재하지 않거나 실행 중이 아니어도 스크립트가 실패하지 않도록 합니다.
+                       sh 'docker stop insurance-project || true'
+                       sh 'docker rm insurance-project || true'
+
+                       // 새로운 insurance-project 컨테이너를 실행합니다.
+                       // -d: 백그라운드에서 실행
+                       // --name: 컨테이너 이름 지정
+                       // --network: 'insurance-net' 네트워크에 연결
+                       // -p 8080:8080: 호스트의 8080 포트를 컨테이너의 8080 포트에 매핑
+                       sh 'docker run -d --name insurance-project --network insurance-net -p 8080:8080 skyrius6732/insurance-project:latest'
+                   }
+               }
         }
     }
 }
