@@ -49,23 +49,117 @@ pipeline {
             }
         }
         stage('Deploy') {
-               steps {
-                   script {
-                       echo '--- Stage: Deploy ---'
-                       echo 'Stopping and removing old insurance-project container...'
-                       // 기존 insurance-project 컨테이너가 실행 중이라면 중지하고 삭제합니다.
-                       // '|| true'는 컨테이너가 존재하지 않거나 실행 중이 아니어도 스크립트가 실패하지 않도록 합니다.
-                       sh 'docker stop insurance-project || true'
-                       sh 'docker rm insurance-project || true'
+            steps {
+                script {
+                    echo '--- Stage: Deploy (Zero-Downtime) ---'
 
-                       // 새로운 insurance-project 컨테이너를 실행합니다.
-                       // -d: 백그라운드에서 실행
-                       // --name: 컨테이너 이름 지정
-                       // --network: 'insurance-net' 네트워크에 연결
-                       // -p 8080:8080: 호스트의 8080 포트를 컨테이너의 8080 포트에 매핑
-                       sh 'docker run -d --name insurance-project --network insurance-net -p 8081:8080 skyrius6732/insurance-project:latest'
-                   }
-               }
+                    // 현재 활성 포트를 저장할 파일 경로
+                    def currentActivePortFile = "${WORKSPACE}/current_active_port.txt"
+                    // 첫 배포 시 기본 활성 포트
+                    def currentActivePort = '8080'
+
+                    // 이전에 배포된 활성 포트가 있는지 확인
+                    if (fileExists(currentActivePortFile)) {
+                        currentActivePort = readFile(currentActivePortFile).trim()
+                        echo "이전 활성 포트: ${currentActivePort}"
+                    } else {
+                        echo "이전 활성 포트가 없습니다. 초기 배포를 위해 ${currentActivePort}를 기본값으로 사용합니다."
+                    }
+
+                    def newDeploymentPort // 새로 배포될 애플리케이션의 포트 (그린)
+                    def oldDeploymentPort // 현재 트래픽을 받고 있는 애플리케이션의 포트 (블루)
+
+                    // 포트 교체 로직 (8080 <-> 8081)
+                    if (currentActivePort == '8080') {
+                        newDeploymentPort = '8081'
+                        oldDeploymentPort = '8080'
+                    } else {
+                        newDeploymentPort = '8080'
+                        oldDeploymentPort = '8081'
+                    }
+
+                    echo "새로운 버전은 ${newDeploymentPort} 포트에 배포됩니다."
+                    echo "이전 버전은 (있다면) ${oldDeploymentPort} 포트에서 실행 중입니다."
+
+                    def newContainerName = "insurance-project-${newDeploymentPort}"
+                    def oldContainerName = "insurance-project-${oldDeploymentPort}"
+
+                    // 1. 새로 배포될 컨테이너 이름으로 이미 존재하는 컨테이너가 있다면 중지하고 삭제합니다.
+                    // (이전 배포가 실패하여 잔여 컨테이너가 남아있을 경우를 대비)
+                    echo "잠재적으로 남아있는 새 컨테이너 (${newContainerName})를 중지하고 삭제합니다..."
+                    sh "docker stop ${newContainerName} || true"
+                    sh "docker rm ${newContainerName} || true"
+
+                    // 2. 새로운 버전의 컨테이너를 실행합니다.
+                    echo "새로운 컨테이너 (${newContainerName})를 ${newDeploymentPort} 포트에 실행합니다..."
+                    sh "docker run -d --name ${newContainerName} --network insurance-net -p ${newDeploymentPort}:${newDeploymentPort} skyrius6732/insurance-project:latest"
+
+                    // 3. 새로운 컨테이너의 헬스 체크를 수행합니다.
+                    echo "새로운 컨테이너 (${newContainerName})의 헬스 체크를 수행합니다..."
+                    // Spring Boot 애플리케이션의 헬스 체크 URL (기본 경로 사용)
+                    def healthCheckUrl = "http://localhost:${newDeploymentPort}"
+                    def maxAttempts = 30 // 최대 시도 횟수
+                    def attempt = 0
+                    def healthy = false
+
+                    while (attempt < maxAttempts) {
+                        try {
+                            // curl을 사용하여 HTTP 상태 코드만 가져옵니다.
+                            def response = sh(script: "curl -s -o /dev/null -w '%{http_code}' ${healthCheckUrl}", returnStdout: true).trim()
+                            if (response == '200') {
+                                echo "헬스 체크 통과: ${newContainerName}."
+                                healthy = true
+                                break
+                            } else {
+                                echo "헬스 체크 실패: ${newContainerName} (HTTP ${response}). 5초 후 재시도..."
+                            }
+                        } catch (e) {
+                            echo "헬스 체크 실패: ${newContainerName} (오류: ${e.message}). 5초 후 재시도..."
+                        }
+                        sleep 5 // 5초 대기
+                        attempt++
+                    }
+
+                    if (!healthy) {
+                        error "새로운 컨테이너 (${newContainerName})가 ${maxAttempts}번 시도 후 헬스 체크에 실패했습니다. 배포를 중단합니다."
+                    }
+
+                    // 4. Nginx 설정을 업데이트하여 새로운 컨테이너로 트래픽을 전환합니다.
+                    echo "Nginx 설정을 ${newContainerName} (${newDeploymentPort} 포트)로 업데이트합니다..."
+                    def nginxConfContent = """
+        		server {
+            			listen 80;
+            			server_name localhost;
+
+            			location / {
+                		proxy_pass http://${newContainerName}:${newDeploymentPort};
+                		proxy_set_header Host \$host;
+                		proxy_set_header X-Real-IP \$remote_addr;
+        		        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        		        proxy_set_header X-Forwarded-Proto \$scheme;
+            			}
+        		}
+        		"""
+                    // 호스트의 Nginx 설정 파일에 내용을 덮어씁니다.
+                    writeFile(file: "/home/skyrius/nginx/conf.d/insurance-project.conf", text: nginxConfContent)
+
+                    // 5. Nginx 설정을 재로드하여 변경 사항을 적용합니다.
+                    echo "Nginx 설정을 재로드합니다..."
+                    sh "docker exec nginx-proxy nginx -s reload"
+
+                    // 6. 이전 버전의 컨테이너를 중지하고 삭제합니다.
+                    echo "이전 컨테이너 (${oldContainerName})를 중지하고 삭제합니다..."
+                    sh "docker stop ${oldContainerName} || true"
+                    sh "docker rm ${oldContainerName} || true"
+
+                    // 7. 현재 활성 포트 정보를 파일에 업데이트합니다.
+                    echo "현재 활성 포트를 ${newDeploymentPort}로 업데이트합니다..."
+                    writeFile(file: currentActivePortFile, text: newDeploymentPort)
+
+                    echo '무중단 배포가 완료되었습니다.'
+                }
+            }
         }
+
     }
 }
