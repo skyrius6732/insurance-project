@@ -4,6 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                echo '--- Stage: Checkout ---'
                 git branch: 'master', url: 'https://github.com/skyrius6732/insurance-project.git'
             }
         }
@@ -19,6 +20,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                     echo '--- Stage: Build Docker Image ---'
+                     echo 'Building Docker image for insurance-project...'
                     // Dockerfile이 있는 디렉토리로 이동
                     dir('.') {
                         // Docker 이미지 빌드
@@ -31,6 +34,8 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
+                    echo '--- Stage: Push Docker Image ---'
+                    echo 'Pushing Docker image to Docker Hub...'
                     // Docker Hub에 로그인 (젠킨스 Credentials에 Docker Hub 자격 증명 추가 필요)
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                         sh "echo \"$DOCKER_PASSWORD\" | docker login -u \"$DOCKER_USERNAME\" --password-stdin"
@@ -46,6 +51,8 @@ pipeline {
         stage('Deploy') {
                steps {
                    script {
+                       echo '--- Stage: Deploy ---'
+                       echo 'Stopping and removing old insurance-project container...'
                        // 기존 insurance-project 컨테이너가 실행 중이라면 중지하고 삭제합니다.
                        // '|| true'는 컨테이너가 존재하지 않거나 실행 중이 아니어도 스크립트가 실패하지 않도록 합니다.
                        sh 'docker stop insurance-project || true'
