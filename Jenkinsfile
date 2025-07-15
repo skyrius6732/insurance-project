@@ -138,11 +138,11 @@ pipeline {
             			server_name localhost;
 
             			 location / {
-                           proxy_pass http://${newContainerName}:8080; // Nginx도 컨테이너 내부의 8080 포트로 전달
-                           proxy_set_header Host \\\$host; // \$host -> \\\$host
-                           proxy_set_header X-Real-IP \\\$remote_addr; // \$remote_addr -> \\\$remote_addr
-                           proxy_set_header X-Forwarded-For \\\$proxy_add_x_forwarded_for; // \$proxy_add_x_forwarded_for -> \\\$proxy_add_x_forwarded_for
-                           proxy_set_header X-Forwarded-Proto \\\$scheme; // \$scheme -> \\\$scheme
+                           proxy_pass http://${newContainerName}:8080; # Nginx도 컨테이너 내부의 8080 포트로 전달
+                           proxy_set_header Host \\\$host; # \$host -> \\\$host
+                           proxy_set_header X-Real-IP \\\$remote_addr; # \$remote_addr -> \\\$remote_addr
+                           proxy_set_header X-Forwarded-For \\\$proxy_add_x_forwarded_for; # \$proxy_add_x_forwarded_for -> \\\$proxy_add_x_forwarded_for
+                           proxy_set_header X-Forwarded-Proto \\\$scheme; # \$scheme -> \\\$scheme
                          }
         		}
         		"""
