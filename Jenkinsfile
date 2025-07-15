@@ -137,13 +137,13 @@ pipeline {
             			listen 80;
             			server_name localhost;
 
-            			location / {
-                		proxy_pass http://${newContainerName}:8080;
-                		proxy_set_header Host \$host;
-                		proxy_set_header X-Real-IP \$remote_addr;
-        		        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        		        proxy_set_header X-Forwarded-Proto \$scheme;
-            			}
+            			 location / {
+                           proxy_pass http://${newContainerName}:8080; // Nginx도 컨테이너 내부의 8080 포트로 전달
+                           proxy_set_header Host \\\$host; // \$host -> \\\$host
+                           proxy_set_header X-Real-IP \\\$remote_addr; // \$remote_addr -> \\\$remote_addr
+                           proxy_set_header X-Forwarded-For \\\$proxy_add_x_forwarded_for; // \$proxy_add_x_forwarded_for -> \\\$proxy_add_x_forwarded_for
+                           proxy_set_header X-Forwarded-Proto \\\$scheme; // \$scheme -> \\\$scheme
+                         }
         		}
         		"""
                     // 호스트의 Nginx 설정 파일에 내용을 덮어씁니다. (홈디렉토리 권한문제로 사용 x 호스트 -> 컨테이너)
