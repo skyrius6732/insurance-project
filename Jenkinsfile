@@ -62,7 +62,7 @@ pipeline {
                     // 현재 활성 포트를 저장할 파일 경로
                     def currentActivePortFile = "${WORKSPACE}/current_active_port.txt"
                     // 첫 배포 시 기본 활성 포트
-                    def currentActivePort = '8080'
+                    def currentActivePort = '8081'
 
                     // 이전에 배포된 활성 포트가 있는지 확인
                     if (fileExists(currentActivePortFile)) {
@@ -75,13 +75,13 @@ pipeline {
                     def newDeploymentPort // 새로 배포될 애플리케이션의 포트 (그린)
                     def oldDeploymentPort // 현재 트래픽을 받고 있는 애플리케이션의 포트 (블루)
 
-                    // 포트 교체 로직 (8080 <-> 8081)
-                    if (currentActivePort == '8080') {
-                        newDeploymentPort = '8081'
-                        oldDeploymentPort = '8080'
-                    } else {
-                        newDeploymentPort = '8080'
+                    // 포트 교체 로직 (8081 <-> 8082)
+                    if (currentActivePort == '8081') {
+                        newDeploymentPort = '8082'
                         oldDeploymentPort = '8081'
+                    } else {
+                        newDeploymentPort = '8081'
+                        oldDeploymentPort = '8082'
                     }
 
                     echo "새로운 버전은 ${newDeploymentPort} 포트에 배포됩니다."
@@ -98,12 +98,12 @@ pipeline {
 
                     // 2. 새로운 버전의 컨테이너를 실행합니다.
                     echo "새로운 컨테이너 (${newContainerName})를 ${newDeploymentPort} 포트에 실행합니다..."
-                    sh "docker run -d --name ${newContainerName} --network insurance-net -p ${newDeploymentPort}:${newDeploymentPort} skyrius6732/insurance-project:latest"
+                    sh "docker run -d --name ${newContainerName} --network insurance-net -p ${newDeploymentPort}:8080 skyrius6732/insurance-project:latest"
 
                     // 3. 새로운 컨테이너의 헬스 체크를 수행합니다.
                     echo "새로운 컨테이너 (${newContainerName})의 헬스 체크를 수행합니다..."
                     // Spring Boot 애플리케이션의 헬스 체크 URL (기본 경로 사용)
-                    def healthCheckUrl = "http://${newContainerName}:${newDeploymentPort}"
+                    def healthCheckUrl = "http://${newContainerName}:8080"
                     def maxAttempts = 5 // 최대 시도 횟수
                     def attempt = 0
                     def healthy = false
@@ -138,7 +138,7 @@ pipeline {
             			server_name localhost;
 
             			location / {
-                		proxy_pass http://${newContainerName}:${newDeploymentPort};
+                		proxy_pass http://${newContainerName}:8080;
                 		proxy_set_header Host \$host;
                 		proxy_set_header X-Real-IP \$remote_addr;
         		        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
