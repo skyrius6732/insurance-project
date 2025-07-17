@@ -34,6 +34,7 @@ services:
   # 2. Spring Boot 애플리케이션
   # 실제 비즈니스 로직이 담긴 핵심 애플리케이션입니다.
   insurance-app:
+    build: .
     image: skyrius6732/insurance-project:latest
     container_name: insurance-project-8081 # 컨테이너 이름을 좀 더 명확하게 변경하는 것을 추천합니다.
     ports:
