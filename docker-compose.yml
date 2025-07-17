@@ -1,0 +1,115 @@
+# Docker Compose 설정 파일 버전 정의
+version: '3.8'
+
+# 모든 서비스(컨테이너)들이 함께 통신할 가상 네트워크를 정의합니다.
+# 이 네트워크 안에서는 컨테이너 이름(예: 'mysql')을 호스트 이름처럼 사용할 수 있습니다.
+networks:
+  insurance-network:
+    driver: bridge
+
+# 컨테이너가 삭제되어도 데이터를 영구적으로 보존하기 위한 볼륨을 정의합니다.
+volumes:
+  mysql-data:
+  jenkins-data:
+  kafka-data:
+
+# 실행할 서비스(컨테이너)들의 목록을 정의합니다.
+services:
+  # 1. Nginx (리버스 프록시)
+  # 외부의 HTTP(80) 요청을 받아 내부의 Spring Boot 앱으로 전달하는 역할.
+  nginx:
+    image: nginx:latest
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      # 호스트의 nginx 설정 폴더를 컨테이너에 연결하여 설정을 외부에서 관리합니다.
+      - /home/skyrius/nginx:/etc/nginx:ro
+    networks:
+      - insurance-network
+    # insurance-app이 먼저 실행된 후에 nginx가 실행되도록 순서를 보장합니다.
+    depends_on:
+      - insurance-app
+
+  # 2. Spring Boot 애플리케이션
+  # 실제 비즈니스 로직이 담긴 핵심 애플리케이션입니다.
+  insurance-app:
+    image: skyrius6732/insurance-project:latest
+    container_name: insurance-project-8081 # 컨테이너 이름을 좀 더 명확하게 변경하는 것을 추천합니다.
+    ports:
+      - "8081:8080"
+    networks:
+      - insurance-network
+    # DB, Redis, Kafka가 먼저 준비되어야 앱이 정상 실행됩니다.
+    depends_on:
+      - mysql
+      - redis
+      - kafka
+    # application.properties의 내용을 여기서 환경변수로 주입하여 관리할 수 있습니다.
+    # 이렇게 하면 코드 변경 없이 설정을 바꿀 수 있어 편리합니다.
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/mydatabase?useSSL=false
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+
+  # 3. MySQL 데이터베이스
+  mysql:
+    image: mysql:latest
+    container_name: mysql-container
+    ports:
+      - "3306:3306"
+    volumes:
+      # DB 데이터를 컨테이너가 삭제되어도 보존하기 위해 볼륨을 사용합니다.
+      - mysql-data:/var/lib/mysql
+    networks:
+      - insurance-network
+    # MySQL 서버 실행을 위한 필수 환경 변수들입니다.
+    # 보안을 위해 실제 비밀번호로 꼭 변경해주세요.
+    environment:
+      - MYSQL_ROOT_PASSWORD=your_root_password 
+      - MYSQL_DATABASE=mydatabase
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+
+  # 4. Redis 캐시
+  redis:
+    image: bitnami/redis:latest
+    container_name: redis-container
+    ports:
+      - "6379:6379"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - insurance-network
+
+  # 5. Kafka (Zookeeper 없는 KRaft 모드)
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    networks:
+      - insurance-network
+    # KRaft 모드 설정을 위한 환경 변수들입니다.
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+      - ./kafka/config/server.properties:/etc/kafka/server.properties
+    command: "/bin/bash -c 'kafka-server-start /etc/kafka/server.properties'"
+
+  # 6. Jenkins (CI/CD 서버)
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      # Jenkins 설정과 작업 내역을 보존하기 위해 볼륨을 사용합니다.
+      - jenkins-data:/var/jenkins_home
+      # Docker를 Jenkins 컨테이너 안에서 사용하기 위한 소켓 마운트입니다.
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - insurance-network
