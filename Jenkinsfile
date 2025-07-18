@@ -104,7 +104,7 @@ pipeline {
 
                     // --- 진단용 명령어 추가 임시 ---
                     echo "Checking status of ${newContainerName}..."
-                    sh "docker ps -a --filter \"name=${newContainerName}\"
+                    sh "docker ps -a --filter "name=${newContainerName}"
                     echo "Fetching logs for ${newContainerName}..."
                     def appLogs = sh(script: "docker logs ${newContainerName}", returnStdout: true).trim()
                     echo "--- Application Logs Start ---"
