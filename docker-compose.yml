@@ -55,6 +55,8 @@ services:
       - SPRING_REDIS_HOST=redis
       - SPRING_REDIS_PORT=6379
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    # Kafka가 준비될 때까지 기다리는 스크립트 추가
+    entrypoint: ["/bin/bash", "-c", "while ! nc -z kafka 9092; do sleep 1; done; java -jar app.jar"]
 
   # 3. MySQL 데이터베이스
   mysql:
