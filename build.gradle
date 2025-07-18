@@ -11,11 +11,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-		// languageVersion = JavaLanguageVersion.of(17)
-		// 로컬 Windows 개발 환경에서는 Java 17을 사용하지만,
-		// WSL2 Ubuntu (젠킨스 컨테이너) 환경에서는 Java 21이 기본이므로 21로 설정합니다.
-		// 필요에 따라 이 값을 변경하거나, Gradle Toolchain 설정을 통해 로컬 JDK 경로를 명시할 수 있습니다.
-		languageVersion = JavaLanguageVersion.of(21)
+		 languageVersion = JavaLanguageVersion.of(17)
 	}
 }
 
