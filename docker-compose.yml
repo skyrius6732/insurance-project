@@ -114,3 +114,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - insurance-network
+    group_add:
+      - 117
+
