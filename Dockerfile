@@ -26,6 +26,11 @@ FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
+# netcat, dnsutils, iputils-ping 설치 (Kafka 연결 대기 스크립트 및 진단용)
+RUN apt-get update && \
+    apt-get install -y netcat-traditional dnsutils iputils-ping && \
+    rm -rf /var/lib/apt/lists/*
+
 # 빌더 스테이지에서 생성된 JAR 파일을 복사
 COPY --from=builder /app/build/libs/insurance-project-0.0.1-SNAPSHOT.jar app.jar
 
@@ -33,4 +38,5 @@ COPY --from=builder /app/build/libs/insurance-project-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 
 # 애플리케이션 실행 명령 정의
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["/bin/bash", "-c", "echo '--- Debugging Kafka Bootstrap Servers ---'; echo 'SPRING_KAFKA_BOOTSTRAP_SERVERS is: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}'; echo '--- Starting Application ---'; java -jar app.jar"]

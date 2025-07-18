@@ -28,7 +28,7 @@ pipeline {
                     dir('.') {
                         // Docker 이미지 빌드
                         // skyrius6732/insurance-project:latest 대신 실제 Docker Hub 사용자 이름과 이미지 이름을 사용하세요.
-                        sh "docker build -t skyrius6732/insurance-project:latest ."
+                        sh "docker build --no-cache -t skyrius6732/insurance-project:latest ."
                     }
                 }
             }
