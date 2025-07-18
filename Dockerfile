@@ -22,15 +22,30 @@ RUN ls -l build/libs
 
 # --- 런타임 스테이지 ---
 # 최종 애플리케이션 이미지를 생성하는 스테이지
-#FROM eclipse-temurin:17-jre-jammy
-FROM eclipse-temurin:17-jre-bullseye
+FROM eclipse-temurin:17-jre-jammy
+#FROM eclipse-temurin:17-jre-bullseye
 
 WORKDIR /app
 
 # netcat, dnsutils, iputils-ping 설치 (Kafka 연결 대기 스크립트 및 진단용)
-RUN apt-get update && \
-    apt-get install -y netcat-traditional dnsutils iputils-ping && \
+#RUN apt-get update && \
+#    apt-get install -y netcat-traditional dnsutils iputils-ping && \
+#    rm -rf /var/lib/apt/lists/*
+
+# 우분투 패키지 서버
+#RUN rm -rf /var/lib/apt/lists/* && \
+#    apt-get update && \
+#    apt-get install -y netcat-traditional dnsutils iputils-ping && \
+#    apt-get clean && \
+#    rm -rf /var/lib/apt/lists/*
+
+# 카카오 미러 서버
+RUN sed -i 's/archive.ubuntu.com/mirror.kakao.com/g' /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get install -y netcat-traditional dnsutils iputils-ping & \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
 
 # 빌더 스테이지에서 생성된 JAR 파일을 복사
 COPY --from=builder /app/build/libs/insurance-project-0.0.1-SNAPSHOT.jar app.jar
