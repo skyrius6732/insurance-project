@@ -70,4 +70,15 @@ public class InsuranceContractEvent {
         this.eventType = eventType;
     }
 
+    /*@Override
+    public String toString() {
+        return "InsuranceContractEvent{" +
+               "contractId='" + contractId + ''' +
+               ", customerId='" + customerId + ''' +
+               ", productName='" + productName + ''' +
+               ", premium=" + premium +
+               ", contractDate=" + contractDate +
+               ", eventType='" + eventType + ''' +
+               '}';
+    }*/
 }
