@@ -22,7 +22,8 @@ RUN ls -l build/libs
 
 # --- 런타임 스테이지 ---
 # 최종 애플리케이션 이미지를 생성하는 스테이지
-FROM eclipse-temurin:17-jre-jammy
+#FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:17-jre-bullseye
 
 WORKDIR /app
 
