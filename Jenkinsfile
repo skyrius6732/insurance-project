@@ -102,7 +102,15 @@ pipeline {
                     echo "새로운 컨테이너 (${newContainerName})를 ${newDeploymentPort} 포트에 실행합니다..."
                     sh "docker run -d --name ${newContainerName} --network insurance-net -p ${newDeploymentPort}:8080 skyrius6732/insurance-project:latest"
 
-
+                    // --- 진단용 명령어 추가 임시 ---
+                    echo "Checking status of ${newContainerName}..."
+                    sh "docker ps -a --filter \"name=${newContainerName}\""
+                    echo "Fetching logs for ${newContainerName}..."
+                    def appLogs = sh(script: "docker logs ${newContainerName}", returnStdout: true).trim()
+                    echo "--- Application Logs Start ---"
+                    echo "${appLogs}"
+                    echo "--- Application Logs End ---"
+                    // --- 진단용 명령어 끝 ---
 
                     // 3. 새로운 컨테이너의 헬스 체크를 수행합니다.
                     echo "새로운 컨테이너 (${newContainerName})의 헬스 체크를 수행합니다..."
