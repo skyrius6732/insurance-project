@@ -24,7 +24,7 @@ services:
       - "80:80"
     volumes:
       # 호스트의 nginx 설정 폴더를 컨테이너에 연결하여 설정을 외부에서 관리합니다.
-      - /home/skyrius/nginx:/etc/nginx:ro
+      - /home/skyrius/nginx:/etc/nginx
     networks:
       - insurance-network
     # insurance-app이 먼저 실행된 후에 nginx가 실행되도록 순서를 보장합니다.
