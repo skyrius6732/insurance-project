@@ -104,7 +104,7 @@ services:
 
   # 6. Jenkins (CI/CD 서버)
   jenkins:
-    build: ./jenkins
+    image: jenkins/jenkins:lts
     container_name: jenkins
     ports:
       - "8080:8080"
