@@ -16,7 +16,7 @@ pipeline {
                 sh 'echo "JAVA_HOME is: $JAVA_HOME"'
                 sh '$JAVA_HOME/bin/java -version'
                 sh 'chmod +x gradlew'
-                sh './gradlew clean build'
+                sh './gradlew clean build -Dorg.gradle.java.home=$JAVA_HOME'
             }
         }
         stage('Build Docker Image') {
