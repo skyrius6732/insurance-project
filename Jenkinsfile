@@ -104,9 +104,9 @@ pipeline {
 
                     // --- 진단용 명령어 추가 ---
                     echo "Checking status of ${newContainerName}..."
-                    sh """docker ps -a --filter "name=${newContainerName}""""
+                    sh "docker ps -a --filter \"name=${newContainerName}\""
                     echo "Fetching logs for ${newContainerName}..."
-                    sh """docker logs ${newContainerName}"""
+                    sh "docker logs ${newContainerName}"
                     // --- 진단용 명령어 끝 ---
 
                     // 3. 새로운 컨테이너의 헬스 체크를 수행합니다.
