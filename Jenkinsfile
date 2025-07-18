@@ -100,7 +100,7 @@ pipeline {
 
                     // 2. 새로운 버전의 컨테이너를 실행합니다.
                     echo "새로운 컨테이너 (${newContainerName})를 ${newDeploymentPort} 포트에 실행합니다..."
-                    sh "docker run -d --name ${newContainerName} --network insurance-net -p ${newDeploymentPort}:8080 -e SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092 skyrius6732/insurance-project:latest"
+                    sh "docker run -d --name ${newContainerName} --network insurance-project_insurance-network -p ${newDeploymentPort}:8080 -e SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092 skyrius6732/insurance-project:latest"
 
                     // --- 진단용 명령어 추가 임시 ---
                     echo "Checking status of ${newContainerName}..."
