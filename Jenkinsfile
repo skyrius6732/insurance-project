@@ -13,6 +13,8 @@ pipeline {
                 jdk 'JDK17' // 젠킨스 Tools 설정에서 지정한 JDK 이름과 일치해야 합니다.
             }
             steps {
+                sh 'echo "JAVA_HOME is: $JAVA_HOME"'
+                sh '$JAVA_HOME/bin/java -version'
                 sh 'chmod +x gradlew'
                 sh './gradlew clean build -Dorg.gradle.java.home=$JAVA_HOME'
             }
