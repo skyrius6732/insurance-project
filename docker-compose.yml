@@ -130,6 +130,9 @@ services:
   jenkins:
     image: jenkins/jenkins:lts
     container_name: jenkins
+    dns:
+      - "8.8.8.8"
+      - "8.8.4.4"
     ports:
       - "8080:8080"
       - "50000:50000"

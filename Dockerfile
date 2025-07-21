@@ -14,6 +14,9 @@ COPY src/main src/main
 # gradlew 실행 권한 부여
 RUN chmod +x gradlew
 
+# DNS 문제 해결을 위해 /etc/resolv.conf에 Google DNS 추가
+RUN printf "nameserver 8.8.8.8\nnameserver 8.8.4.4\n" > /etc/resolv.conf
+
 # Gradle 빌드 실행
 RUN ./gradlew bootJar --no-daemon -x test
 
@@ -55,4 +58,4 @@ EXPOSE 8080
 
 # 애플리케이션 실행 명령 정의
  ENTRYPOINT ["java", "-jar", "app.jar"]
-#ENTRYPOINT ["/bin/bash", "-c", "echo \"--- Debugging Kafka Bootstrap Servers ---\"; echo \"SPRING_KAFKA_BOOTSTRAP_SERVERS is: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}\"; echo \"--- Starting Application ---\"; java -jar app.jar"]
+#ENTRYPOINT ["/bin/bash", "-c", "echo \"--- Debugging Kafka Bootstrap Servers ---\"; echo \"SPRING_KAFKA_BOOTSTRAP_SERVERS is: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}\"\n; echo \"--- Starting Application ---\"; java -jar app.jar"]
