@@ -1,0 +1,8 @@
+version: '3.8'
+# docker-compose up -d 명령어 시 docker-compose 기능으로
+# docker-compose.yml(default)에 docker-compose.override.yml 파일을 읽어와 오버라이딩하여
+# 실제로 아래 설정들이 올라감.
+services:
+  kafka:
+    volumes:
+      - ./kafka/config/server_dev.properties:/etc/kafka/server.properties
