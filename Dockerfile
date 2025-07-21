@@ -14,7 +14,7 @@ COPY src/main src/main
 # gradlew 실행 권한 부여
 RUN chmod +x gradlew
 
-# DNS 설정을 파일에 쓰는 대신, Gradle 실행 시 JVM 옵션으로 DNS 서버를 직접 지정
+# DNS 설정을 파일에 쓰는 대신, Gradle 실행 시 JVM 옵션으로 DNS 서버를 직접 지정함
 RUN ./gradlew -Dsun.net.spi.nameservice.nameservers=8.8.8.8 bootJar --no-daemon -x test
 
 # JAR 파일 생성 확인 (디버깅용)
