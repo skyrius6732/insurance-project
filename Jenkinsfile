@@ -107,7 +107,7 @@ pipeline {
 
                     // 2. 새로운 버전의 컨테이너를 실행합니다.
                     echo "새로운 컨테이너 (${newContainerName})를 ${newDeploymentPort} 포트에 실행합니다..."
-                    sh "docker run -d --name ${newContainerName} --network insurance-project_insurance-network -p ${newDeploymentPort}:8080 -e SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092 skyrius6732/insurance-project:latest"
+                    sh "docker run -d --name insurance-project-insurance-app-${newDeploymentPort} --network insurance-project_insurance-network -p ${newDeploymentPort}:8080 -e SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092 skyrius6732/insurance-project:latest"
 
                     // --- 진단용 명령어 추가 임시 ---
                     echo "Checking status of ${newContainerName}..."
@@ -157,7 +157,7 @@ pipeline {
             			server_name localhost;
 
             			 location / {
-                           proxy_pass http://${newContainerName}:8080; # Nginx도 컨테이너 내부의 8080 포트로 전달
+                           proxy_pass http://insurance-project-insurance-app-${newDeploymentPort}:8080; # Nginx도 컨테이너 내부의 8080 포트로 전달
                            proxy_set_header Host \\\$host; # \$host -> \\\$host
                            proxy_set_header X-Real-IP \\\$remote_addr; # \$remote_addr -> \\\$remote_addr
                            proxy_set_header X-Forwarded-For \\\$proxy_add_x_forwarded_for; # \$proxy_add_x_forwarded_for -> \\\$proxy_add_x_forwarded_for

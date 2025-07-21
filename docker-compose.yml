@@ -36,7 +36,7 @@ services:
   insurance-app:
     build: .
     image: skyrius6732/insurance-project:latest
-    container_name: insurance-project-8081 # 컨테이너 이름을 좀 더 명확하게 변경하는 것을 추천합니다.
+    
     ports:
       - "8081:8080"
     networks:
