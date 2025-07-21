@@ -68,6 +68,7 @@ services:
     volumes:
       # DB 데이터를 컨테이너가 삭제되어도 보존하기 위해 볼륨을 사용합니다.
       - mysql-data:/var/lib/mysql
+      - ./mysql/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf
     networks:
       - insurance-network
     # MySQL 서버 실행을 위한 필수 환경 변수들입니다.
@@ -77,6 +78,7 @@ services:
       - MYSQL_DATABASE=mydatabase
       - MYSQL_USER=user
       - MYSQL_PASSWORD=password
+      - MYSQL_AUTHENTICATION_PLUGIN=mysql_native_password
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s

@@ -1,3 +1,7 @@
+# 모든 텍스트 파일의 줄 끝을 LF로 통일합니다.
+* text=auto eol=lf
+
+# 특정 파일들은 예외 처리합니다.
 /gradlew text eol=lf
 *.bat text eol=crlf
 *.jar binary
