@@ -56,6 +56,14 @@ pipeline {
                 script {
                     echo '--- Stage: Deploy (Zero-Downtime) ---'
 
+                    // 빌드 시작 전, 잠재적인 포트 충돌을 방지하기 위한 강제 정리
+                    // Jenkinsfile에서 사용하는 컨테이너 이름 패턴에 맞춰 정리
+                    // insurance-project-insurance-app-8081과 insurance-project-insurance-app-8082를 모두 정리
+                    sh "docker stop insurance-project-insurance-app-8081 || true"
+                    sh "docker rm insurance-project-insurance-app-8081 || true"
+                    sh "docker stop insurance-project-insurance-app-8082 || true"
+                    sh "docker rm insurance-project-insurance-app-8082 || true"
+
                     // 기존에 수동으로 실행되었을 수 있는 insurance-project 컨테이너를 정리합니다.
                     // 이 컨테이너는 무중단 배포 로직에 의해 관리되지 않으므로,
                     // 포트 충돌을 방지하기 위해 먼저 정리합니다.
