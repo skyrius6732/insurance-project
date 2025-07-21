@@ -54,5 +54,5 @@ COPY --from=builder /app/build/libs/insurance-project-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 
 # 애플리케이션 실행 명령 정의
-# ENTRYPOINT ["java", "-jar", "app.jar"]
-ENTRYPOINT ["/bin/bash", "-c", "echo \"--- Debugging Kafka Bootstrap Servers ---\"; echo \"SPRING_KAFKA_BOOTSTRAP_SERVERS is: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}\"; echo \"--- Starting Application ---\"; java -jar app.jar"]
+ ENTRYPOINT ["java", "-jar", "app.jar"]
+#ENTRYPOINT ["/bin/bash", "-c", "echo \"--- Debugging Kafka Bootstrap Servers ---\"; echo \"SPRING_KAFKA_BOOTSTRAP_SERVERS is: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}\"; echo \"--- Starting Application ---\"; java -jar app.jar"]
