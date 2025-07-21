@@ -98,8 +98,23 @@ pipeline {
                     echo "새로운 버전은 ${newDeploymentPort} 포트에 배포됩니다."
                     echo "이전 버전은 (있다면) ${oldDeploymentPort} 포트에서 실행 중입니다."
 
-                    def newContainerName = "insurance-project-${newDeploymentPort}"
-                    def oldContainerName = "insurance-project-${oldDeploymentPort}"
+                    def newContainerName // 새로 배포될 애플리케이션의 컨테이너 이름
+                    def oldContainerName // 현재 트래픽을 받고 있는 애플리케이션의 컨테이너 이름
+
+                    // 포트 교체 로직 (8081 <-> 8082)
+                    if (currentActivePort == '8081') {
+                        newDeploymentPort = '8082'
+                        oldDeploymentPort = '8081'
+                    } else {
+                        newDeploymentPort = '8081'
+                        oldDeploymentPort = '8082'
+                    }
+
+                    // 컨테이너 이름은 Docker Compose가 생성하는 이름 패턴과 일치시킵니다.
+                    // 프로젝트 이름 (insurance-project) + 서비스 이름 (insurance-app) + 포트
+                    // 예: insurance-project-insurance-app-8081, insurance-project-insurance-app-8082
+                    newContainerName = "insurance-project-insurance-app-${newDeploymentPort}"
+                    oldContainerName = "insurance-project-insurance-app-${oldDeploymentPort}"
 
                     // 1. 새로 배포될 컨테이너 이름으로 이미 존재하는 컨테이너가 있다면 중지하고 삭제합니다.
                     // (이전 배포가 실패하여 잔여 컨테이너가 남아있을 경우를 대비)
