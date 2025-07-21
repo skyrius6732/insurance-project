@@ -96,8 +96,14 @@ pipeline {
                     // 1. 새로 배포될 컨테이너 이름으로 이미 존재하는 컨테이너가 있다면 중지하고 삭제합니다.
                     // (이전 배포가 실패하여 잔여 컨테이너가 남아있을 경우를 대비)
                     echo "잠재적으로 남아있는 새 컨테이너 (${newContainerName})를 중지하고 삭제합니다..."
-                    sh "docker stop ${newContainerName} || true"
-                    sh "docker rm ${newContainerName} || true"
+                    // 컨테이너가 존재하는지 확인하고, 존재하면 중지 및 삭제
+                    def containerExists = sh(script: "docker ps -a --filter name=${newContainerName} --format '{{.ID}}'", returnStdout: true).trim()
+                    if (containerExists) {
+                        sh "docker stop ${newContainerName}"
+                        sh "docker rm ${newContainerName}"
+                    } else {
+                        echo "컨테이너 ${newContainerName}는 존재하지 않습니다. 건너뜁니다."
+                    }
 
                     // 2. 새로운 버전의 컨테이너를 실행합니다.
                     echo "새로운 컨테이너 (${newContainerName})를 ${newDeploymentPort} 포트에 실행합니다..."
