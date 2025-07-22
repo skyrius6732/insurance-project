@@ -43,7 +43,7 @@ public class KafkaConsumerConfig {
         // 보안을 위해서는 특정 패키지만 명시하는 것이 좋습니다. (e.g., "com.example.insurance_project.kafka.dto")
         deserializer.addTrustedPackages("*");
         // 키에 대한 타입 매퍼 사용 여부
-        deserializer.setUseTypeMapperForKey(true);
+        
 
         return new DefaultKafkaConsumerFactory<>(
                 props,
