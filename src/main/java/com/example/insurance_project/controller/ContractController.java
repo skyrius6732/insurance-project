@@ -4,12 +4,14 @@ import com.example.insurance_project.domain.Contract;
 import com.example.insurance_project.kafka.dto.ContractCreatedEvent;
 import com.example.insurance_project.kafka.KafkaProducerService;
 import com.example.insurance_project.repository.ContractRepository;
+import com.example.insurance_project.kafka.dto.SignContractRequest;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.UUID;
 
@@ -28,14 +30,14 @@ public class ContractController {
 
     /**
      * 신규 보험 계약을 체결하는 API 엔드포인트입니다.
+     * @param request 계약 요청 본문 (고객 ID, 상품 ID 포함)
      * @return 생성된 계약 정보 문자열
      */
     @PostMapping("/sign")
-    public String signContract() {
-        // 1. 실제로는 요청 본문(Request Body)에서 고객 ID와 상품 ID를 받아야 합니다.
-        //    여기서는 테스트를 위해 임의의 값을 사용합니다.
-        String customerId = "CUSTOMER-12345";
-        String productId = "PRODUCT-HEALTH-001";
+    public String signContract(@RequestBody SignContractRequest request) {
+        // 1. 요청 본문(Request Body)에서 고객 ID와 상품 ID를 받아옵니다.
+        String customerId = request.getCustomerId();
+        String productId = request.getProductId();
 
         // 2. Contract 엔티티를 생성하고 DB에 저장합니다.
         Contract newContract = Contract.builder()
