@@ -20,6 +20,8 @@ public class KafkaProducerService {
     // 로거(Logger) 객체 생성
     private static final Logger log = LoggerFactory.getLogger(KafkaProducerService.class);
 
+    private static final String TOPIC_HELLO = "hello-evnets";
+
     // 계약 생성 이벤트를 보낼 토픽 이름
     private static final String TOPIC_CONTRACT_EVENTS = "contract-events";
 
@@ -55,4 +57,14 @@ public class KafkaProducerService {
         // KafkaProducerConfig 설정 덕분에 이 객체는 자동으로 JSON으로 변환됩니다.
         this.contractEventKafkaTemplate.send(TOPIC_CONTRACT_EVENTS, event);
     }
+
+    /**
+     * 간단한 테스트용 문자열 메시지를 전송합니다.
+     * @param message 보낼 메시지 문자열
+     */
+    public void sendMessage(String message) {
+        log.info("Produce message: {}", message);
+        this.kafkaTemplate.send(TOPIC_HELLO, message);
+    }
+
 }
