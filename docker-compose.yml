@@ -36,7 +36,7 @@ services:
   insurance-app:
     build: .
     image: skyrius6732/insurance-project:latest
-    
+    container_name: insurance-project-insurance-app-8081
     ports:
       - "8081:8080"
     networks:
