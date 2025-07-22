@@ -63,9 +63,6 @@ pipeline {
                     sh "docker rm insurance-project-insurance-app-8081 || true"
                     sh "docker stop insurance-project-insurance-app-8082 || true"
                     sh "docker rm insurance-project-insurance-app-8082 || true"
-                    // docker-compose로 시작되었을 수 있는 컨테이너도 정리
-                    sh "docker stop insurance-project-insurance-app-1 || true"
-                    sh "docker rm insurance-project-insurance-app-1 || true"
 
                     // 기존에 수동으로 실행되었을 수 있는 insurance-project 컨테이너를 정리합니다.
                     // 이 컨테이너는 무중단 배포 로직에 의해 관리되지 않으므로,
@@ -104,14 +101,6 @@ pipeline {
                     def newContainerName // 새로 배포될 애플리케이션의 컨테이너 이름
                     def oldContainerName // 현재 트래픽을 받고 있는 애플리케이션의 컨테이너 이름
 
-                    // 포트 교체 로직 (8081 <-> 8082)
-                    if (currentActivePort == '8081') {
-                        newDeploymentPort = '8082'
-                        oldDeploymentPort = '8081'
-                    } else {
-                        newDeploymentPort = '8081'
-                        oldDeploymentPort = '8082'
-                    }
 
                     // 컨테이너 이름은 Docker Compose가 생성하는 이름 패턴과 일치시킵니다.
                     // 프로젝트 이름 (insurance-project) + 서비스 이름 (insurance-app) + 포트
