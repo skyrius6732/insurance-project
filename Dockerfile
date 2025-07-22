@@ -44,7 +44,7 @@ WORKDIR /app
 # 카카오 미러 서버
 RUN sed -i 's/archive.ubuntu.com/mirror.kakao.com/g' /etc/apt/sources.list && \
     apt-get update && \
-    apt-get install -y netcat-traditional dnsutils iputils-ping & \
+    apt-get install -y netcat-traditional dnsutils iputils-ping && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
