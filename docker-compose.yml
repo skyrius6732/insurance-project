@@ -12,6 +12,8 @@ volumes:
   mysql-data:
   jenkins-data:
   kafka-data:
+  prometheus-data:
+  grafana-data:
 
 # 실행할 서비스(컨테이너)들의 목록을 정의합니다.
 services:
@@ -108,23 +110,31 @@ services:
 
   # 5. Kafka (Zookeeper 없는 KRaft 모드)
   kafka:
-    image: confluentinc/cp-kafka:7.5.0
+    image: bitnami/kafka:latest
     container_name: kafka
     ports:
       - "9092:9092"
     networks:
       - insurance-network
-    # KRaft 모드 설정을 위한 환경 변수들입니다.
-    volumes:
-      - kafka-data:/var/lib/kafka/data
-      - ./kafka/config/server.properties:/etc/kafka/server.properties
-    command: "/bin/bash -c 'kafka-server-start /etc/kafka/server.properties'"
+    environment:
+      KAFKA_CFG_BROKER_ID: 1
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_CFG_LOG_DIRS: /bitnami/kafka/data
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "9092"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-      start_period: 30s
+      test: ["CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
 
   # 6. Jenkins (CI/CD 서버)
   jenkins:
@@ -145,3 +155,48 @@ services:
       - insurance-network
     group_add:
       - 117
+
+  # 7. Kafka Exporter (Kafka 메트릭 수집)
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    container_name: kafka-exporter
+    ports:
+      - "9308:9308"
+    networks:
+      - insurance-network
+    environment:
+      - KAFKA_SERVER=kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  # 8. Prometheus (메트릭 수집 및 저장)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command: --config.file=/etc/prometheus/prometheus.yml --web.enable-lifecycle
+    networks:
+      - insurance-network
+    depends_on:
+      - kafka-exporter
+
+  # 9. Grafana (데이터 시각화 및 대시보드)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - insurance-network
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
