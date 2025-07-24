@@ -141,6 +141,7 @@ services:
   # 6. Jenkins (CI/CD 서버)
   jenkins:
   # image: jenkins/jenkins:lts
+    # 젠킨스 내부 jdk17, docker.io 설치를 위한 빌드스택 추가
     build: ./jenkins
     container_name: jenkins
     dns:
