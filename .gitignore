@@ -24,3 +24,6 @@ out/
 !gradle-wrapper.properties
 !gradlew
 !gradlew.bat
+
+# Ignore dynamically updated Nginx configuration file                                                                                               │
+nginx/conf.d/insurance-project.conf
