@@ -140,7 +140,8 @@ services:
 
   # 6. Jenkins (CI/CD 서버)
   jenkins:
-    image: jenkins/jenkins:lts
+  # image: jenkins/jenkins:lts
+    build: ./jenkins
     container_name: jenkins
     dns:
       - "8.8.8.8"
