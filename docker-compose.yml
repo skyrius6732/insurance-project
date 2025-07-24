@@ -27,7 +27,7 @@ services:
     volumes:
       # 호스트의 nginx 설정 폴더를 컨테이너에 연결하여 설정을 외부에서 관리합니다.
       # - /home/skyrius/nginx:/etc/nginx
-      # docker-compose.yml 파일이 있는 디렉토리(insurance-project)를 기준으로 상대 경로 사용
+      # docker-compose.yml 파일이 있는 디렉토리(insurance-project)를 기준으로 상대 경로 사용 변경
       - ./nginx:/etc/nginx
     networks:
       - insurance-network
