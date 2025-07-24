@@ -25,5 +25,5 @@ out/
 !gradlew
 !gradlew.bat
 
-# Ignore dynamically updated Nginx configuration file                                                                                               │
+# Ignore dynamically updated Nginx configuration file 추가                                                                                               │
 nginx/conf.d/insurance-project.conf
