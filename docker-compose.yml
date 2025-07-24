@@ -6,6 +6,9 @@ version: '3.8'
 networks:
   insurance-network:
     driver: bridge
+  minikube-network: # 쿠버네티스와 통신하기 위한 network 설정
+    external: true
+    name: minikube
 
 # 컨테이너가 삭제되어도 데이터를 영구적으로 보존하기 위한 볼륨을 정의합니다.
 volumes:
@@ -157,6 +160,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - insurance-network
+      - minikube-network
     group_add:
       - 117
 
