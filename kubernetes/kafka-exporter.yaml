@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-exporter
+  namespace: monitoring # Prometheus와 같은 네임스페이스에 배포
+  labels:
+    app: kafka-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-exporter
+  template:
+    metadata:
+      labels:
+        app: kafka-exporter
+    spec:
+      hostAliases:
+        - ip: "172.24.96.243"
+          hostnames:
+            - "kafka"
+      containers:
+      - name: kafka-exporter
+        image: danielqsj/kafka-exporter:latest # Docker Compose에서 사용하던 이미지
+        ports:
+        - containerPort: 9308
+        env:
+        - name: KAFKA_BROKERS
+          value: "k172.24.96.243:9092" # Docker Compose Kafka 브로커 IP와 포트
+          # 참고: 172.24.96.243은 WSL2의 유동 IP입니다. WSL2 재시작 시 IP가 변경될 수 있으며, 이 경우 이 값을 수동으로 업데이트해야 합니다.
+        - name: KAFKA_EXPORTER_LOG_LEVEL
+          value: "info"
+        # 필요한 경우 다른 환경 변수 추가 (예: KAFKA_EXPORTER_GROUP_BLACKLIST)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-exporter
+  namespace: monitoring
+  labels:
+    app: kafka-exporter
+spec:
+  selector:
+    app: kafka-exporter
+  ports:
+    - name: http-metrics
+      protocol: TCP
+      port: 9308
+      targetPort: 9308
+  type: ClusterIP # 클러스터 내부에서만 접근 가능하도록 ClusterIP 사용
