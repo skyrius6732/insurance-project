@@ -2,7 +2,7 @@ package com.example.insurance_project.controller;
 
 import com.example.insurance_project.domain.Contract;
 import com.example.insurance_project.kafka.KafkaProducerService;
-import com.example.insurance_project.kafka.dto.ContractCreatedEvent;
+// import com.example.insurance_project.kafka.dto.ContractCreatedEvent; // 이 임포트는 더 이상 필요 없을 수 있음
 import com.example.insurance_project.repository.ContractRepository;
 import com.example.insurance_project.kafka.dto.SignContractRequest;
 import com.example.insurance_project.kafka.dto.BatchSignContractRequest;
@@ -54,19 +54,21 @@ public class ContractController {
         contractRepository.save(newContract);
         log.info("Successfully saved contract to DB: {}", newContract.getContractId());
 
-        ContractCreatedEvent contractCreatedEvent = ContractCreatedEvent.builder()
-                .contractId("CONTRACT-" + contractId)
-                .customerId(customerId)
-                .productId(productId)
-                .build();
-        producerService.sendContractCreatedEvent(contractCreatedEvent); // ContractCreatedEvent 발행
+        // ContractCreatedEvent 발행 (이 부분 제거)
+        // ContractCreatedEvent contractCreatedEvent = ContractCreatedEvent.builder()
+        //         .contractId("CONTRACT-" + contractId)
+        //         .customerId(customerId)
+        //         .productId(productId)
+        //         .build();
+        // producerService.sendContractCreatedEvent(contractCreatedEvent);
 
         // InsuranceEvent 발행
         InsuranceEvent insuranceEvent = new InsuranceEvent(
                 "EVENT-" + UUID.randomUUID().toString(), // 고유한 eventId 생성
                 "CONTRACT_SIGNED", // 이벤트 타입
-                newContract.getContractId(),
+                newContract.getContractId(), // policyNumber로 사용될 contractId
                 newContract.getCustomerId(),
+                "AGENT-007", // 새로 추가된 agentId 필드
                 objectMapper.createObjectNode() // 이벤트 상세 데이터를 JSON으로 구성
                         .put("productId", newContract.getProductId())
                         .put("timestamp", System.currentTimeMillis())
@@ -74,7 +76,7 @@ public class ContractController {
         );
         producerService.sendInsuranceEvent(insuranceEvent);
 
-        return "Contract " + newContract.getContractId() + " has been signed successfully. Both ContractCreatedEvent and InsuranceEvent published to Kafka.";
+        return "Contract " + newContract.getContractId() + " has been signed successfully. InsuranceEvent published to Kafka.";
     }
 
     /**
@@ -106,18 +108,20 @@ public class ContractController {
                 contractRepository.save(newContract);
                 log.info("Successfully saved contract to DB: {}", newContract.getContractId());
 
-                ContractCreatedEvent contractCreatedEvent = ContractCreatedEvent.builder()
-                        .contractId("CONTRACT-" + contractId)
-                        .customerId(customerId)
-                        .productId(productId)
-                        .build();
-                producerService.sendContractCreatedEvent(contractCreatedEvent); // ContractCreatedEvent 발행
+                // ContractCreatedEvent 발행 (이 부분 제거)
+                // ContractCreatedEvent contractCreatedEvent = ContractCreatedEvent.builder()
+                //         .contractId("CONTRACT-" + contractId)
+                //         .customerId(customerId)
+                //         .productId(productId)
+                //         .build();
+                // producerService.sendContractCreatedEvent(contractCreatedEvent);
 
                 InsuranceEvent insuranceEvent = new InsuranceEvent(
                         "EVENT-" + UUID.randomUUID().toString(), // 고유한 eventId 생성
                         "CONTRACT_SIGNED", // 이벤트 타입
-                        newContract.getContractId(),
+                        newContract.getContractId(), // policyNumber로 사용될 contractId
                         newContract.getCustomerId(),
+                        "AGENT-007", // 새로 추가된 agentId 필드
                         objectMapper.createObjectNode()
                                 .put("productId", newContract.getProductId())
                                 .put("timestamp", System.currentTimeMillis())

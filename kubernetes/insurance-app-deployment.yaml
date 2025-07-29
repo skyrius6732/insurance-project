@@ -17,7 +17,7 @@ spec:
       containers:
       - name: insurance-app
         image: skyrius6732/insurance-project:latest
-        # imagePullPolicy: Never # Minikube 내부 레지스트리에서 이미지를 가져오도록 설정 (기본값 IfNotPresent 사용)
+        imagePullPolicy: Always # 항상 최신 이미지를 가져오도록 설정
         ports:
         - containerPort: 8080
         env:

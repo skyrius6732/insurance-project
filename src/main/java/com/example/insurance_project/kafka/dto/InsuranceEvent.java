@@ -14,6 +14,7 @@ public class InsuranceEvent {
     private String eventType;
     private String policyNumber;
     private String customerId;
+    private String agentId; // 새로 추가된 필드
     private String eventData; // JSON string or other structured data
 
     @JsonCreator
@@ -21,11 +22,13 @@ public class InsuranceEvent {
                           @JsonProperty("eventType") String eventType,
                           @JsonProperty("policyNumber") String policyNumber,
                           @JsonProperty("customerId") String customerId,
+                          @JsonProperty("agentId") String agentId,
                           @JsonProperty("eventData") String eventData) {
         this.eventId = eventId;
         this.eventType = eventType;
         this.policyNumber = policyNumber;
         this.customerId = customerId;
+        this.agentId = agentId;
         this.eventData = eventData;
     }
 }
