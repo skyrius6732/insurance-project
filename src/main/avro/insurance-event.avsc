@@ -1,0 +1,14 @@
+
+{
+  "namespace": "com.example.insurance_project.kafka.avro",
+  "type": "record",
+  "name": "InsuranceEvent",
+  "fields": [
+    {"name": "eventId", "type": "string"},
+    {"name": "eventType", "type": "string"},
+    {"name": "policyNumber", "type": "string"},
+    {"name": "customerId", "type": "string"},
+    {"name": "eventData", "type": "string"},
+    {"name": "agentId", "type": ["null", "string"], "default": null}
+  ]
+}

@@ -1,7 +1,7 @@
 package com.example.insurance_project.controller;
 
 import com.example.insurance_project.kafka.KafkaProducerService;
-import com.example.insurance_project.kafka.dto.InsuranceEvent;
+import com.example.insurance_project.kafka.avro.InsuranceEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

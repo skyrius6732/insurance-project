@@ -6,7 +6,7 @@ import com.example.insurance_project.kafka.KafkaProducerService;
 import com.example.insurance_project.repository.ContractRepository;
 import com.example.insurance_project.kafka.dto.SignContractRequest;
 import com.example.insurance_project.kafka.dto.BatchSignContractRequest;
-import com.example.insurance_project.kafka.dto.InsuranceEvent;
+import com.example.insurance_project.kafka.avro.InsuranceEvent; // Avro 클래스로 변경
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -64,15 +64,15 @@ public class ContractController {
 
         // InsuranceEvent 발행
         InsuranceEvent insuranceEvent = new InsuranceEvent(
-                "EVENT-" + UUID.randomUUID().toString(), // 고유한 eventId 생성
-                "CONTRACT_SIGNED", // 이벤트 타입
-                newContract.getContractId(), // policyNumber로 사용될 contractId
-                newContract.getCustomerId(),
-                "AGENT-007", // 새로 추가된 agentId 필드
-                objectMapper.createObjectNode() // 이벤트 상세 데이터를 JSON으로 구성
+                "EVENT-" + UUID.randomUUID().toString(), // eventId
+                "CONTRACT_SIGNED", // eventType
+                newContract.getContractId(), // policyNumber
+                newContract.getCustomerId(), // customerId
+                objectMapper.createObjectNode() // eventData
                         .put("productId", newContract.getProductId())
                         .put("timestamp", System.currentTimeMillis())
-                        .toString()
+                        .toString(),
+                "AGENT-007" // agentId
         );
         producerService.sendInsuranceEvent(insuranceEvent);
 
@@ -117,15 +117,15 @@ public class ContractController {
                 // producerService.sendContractCreatedEvent(contractCreatedEvent);
 
                 InsuranceEvent insuranceEvent = new InsuranceEvent(
-                        "EVENT-" + UUID.randomUUID().toString(), // 고유한 eventId 생성
-                        "CONTRACT_SIGNED", // 이벤트 타입
-                        newContract.getContractId(), // policyNumber로 사용될 contractId
-                        newContract.getCustomerId(),
-                        "AGENT-007", // 새로 추가된 agentId 필드
-                        objectMapper.createObjectNode()
+                        "EVENT-" + UUID.randomUUID().toString(), // eventId
+                        "CONTRACT_SIGNED", // eventType
+                        newContract.getContractId(), // policyNumber
+                        newContract.getCustomerId(), // customerId
+                        objectMapper.createObjectNode() // eventData
                                 .put("productId", newContract.getProductId())
                                 .put("timestamp", System.currentTimeMillis())
-                                .toString()
+                                .toString(),
+                        "AGENT-007" // agentId
                 );
                 producerService.sendInsuranceEvent(insuranceEvent); // InsuranceEvent 발행
 

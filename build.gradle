@@ -4,6 +4,7 @@ plugins {
 //	id 'war'
 	id 'org.springframework.boot' version '3.5.3'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id "com.github.davidmc24.gradle.plugin.avro" version "1.9.1"
 }
 
 group = 'com.example'
@@ -17,6 +18,10 @@ java {
 
 repositories {
 	mavenCentral()
+	// Confluent 저장소 추가
+	maven {
+		url 'https://packages.confluent.io/maven/'
+	}
 }
 
 dependencies {
@@ -29,10 +34,23 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	runtimeOnly 'com.h2database:h2'
 
+	// Avro 및 스키마 레지스트리 의존성 추가
+	implementation 'org.apache.avro:avro:1.11.3'
+	implementation 'io.confluent:kafka-avro-serializer:7.5.0'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+// Avro 플러그인 설정
+avro {
+	createSetters = false
+	createOptionalGetters = true
+	fieldVisibility = "PRIVATE"
+	outputCharacterEncoding = "UTF-8"
+	stringType = "String"
 }
 
 tasks.named('test') {
