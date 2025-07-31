@@ -10,4 +10,5 @@ import lombok.ToString;
 public class SignContractRequest {
     private String customerId;
     private String productId;
+    private String policyNumber;
 }

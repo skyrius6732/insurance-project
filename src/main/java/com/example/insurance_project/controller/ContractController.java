@@ -43,7 +43,9 @@ public class ContractController {
         // 1. 요청 본문(Request Body)에서 고객 ID와 상품 ID를 받아옵니다.
         String customerId = request.getCustomerId();
         String productId = request.getProductId();
+        String policyNumber = request.getPolicyNumber();     // policyNumber(DLQ 발생을 위한)
         String contractId = UUID.randomUUID().toString();
+
 
         // 2. Contract 엔티티를 생성하고 DB에 저장합니다.
         Contract newContract = Contract.builder()
@@ -66,7 +68,8 @@ public class ContractController {
         InsuranceEvent insuranceEvent = new InsuranceEvent(
                 "EVENT-" + UUID.randomUUID().toString(), // eventId
                 "CONTRACT_SIGNED", // eventType
-                newContract.getContractId(), // policyNumber
+//                newContract.getContractId(), // policyNumber
+                policyNumber,      // policyNumber(DLQ 발생을 위한)
                 newContract.getCustomerId(), // customerId
                 objectMapper.createObjectNode() // eventData
                         .put("productId", newContract.getProductId())
@@ -98,6 +101,7 @@ public class ContractController {
             try {
                 String customerId = request.getCustomerId();
                 String productId = request.getProductId();
+                String policyNumber = request.getPolicyNumber();     // policyNumber(DLQ 발생을 위한)
                 String contractId = UUID.randomUUID().toString();
 
                 Contract newContract = Contract.builder()
@@ -119,7 +123,8 @@ public class ContractController {
                 InsuranceEvent insuranceEvent = new InsuranceEvent(
                         "EVENT-" + UUID.randomUUID().toString(), // eventId
                         "CONTRACT_SIGNED", // eventType
-                        newContract.getContractId(), // policyNumber
+                        //newContract.getContractId(), // policyNumber
+                        policyNumber,
                         newContract.getCustomerId(), // customerId
                         objectMapper.createObjectNode() // eventData
                                 .put("productId", newContract.getProductId())

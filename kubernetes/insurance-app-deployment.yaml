@@ -17,7 +17,7 @@ spec:
       containers:
       - name: insurance-app
         image: skyrius6732/insurance-project:latest
-        imagePullPolicy: Always # 항상 최신 이미지를 가져오도록 설정
+        imagePullPolicy: IfNotPresent # 로컬에 없으면 가져오도록 설정
         ports:
         - containerPort: 8080
         env:
@@ -37,3 +37,5 @@ spec:
           value: "6379"
         - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
           value: "172.24.96.243:9092"
+        - name: SPRING_KAFKA_PROPERTIES_SCHEMA_REGISTRY_URL
+          value: "http://172.24.96.243:8085"
