@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -75,7 +76,8 @@ public class ContractController {
                         .put("productId", newContract.getProductId())
                         .put("timestamp", System.currentTimeMillis())
                         .toString(),
-                "AGENT-007" // agentId
+                "AGENT-007", // agentId
+                Instant.now().toEpochMilli() // eventTimestamp
         );
         producerService.sendInsuranceEvent(insuranceEvent);
 
@@ -130,7 +132,8 @@ public class ContractController {
                                 .put("productId", newContract.getProductId())
                                 .put("timestamp", System.currentTimeMillis())
                                 .toString(),
-                        "AGENT-007" // agentId
+                        "AGENT-007", // agentId
+                        Instant.now().toEpochMilli() // eventTimestamp
                 );
                 producerService.sendInsuranceEvent(insuranceEvent); // InsuranceEvent 발행
 

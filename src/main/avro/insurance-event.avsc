@@ -9,6 +9,7 @@
     {"name": "policyNumber", "type": "string"},
     {"name": "customerId", "type": "string"},
     {"name": "eventData", "type": "string"},
-    {"name": "agentId", "type": ["null", "string"], "default": null}
+    {"name": "agentId", "type": ["null", "string"], "default": null},
+    {"name": "eventTimestamp", "type": "long", "logicalType": "timestamp-millis", "default": 0}
   ]
 }
