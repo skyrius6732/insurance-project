@@ -71,7 +71,7 @@ services:
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.H2Dialect
       - SPRING_REDIS_HOST=redis
       - SPRING_REDIS_PORT=6379
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:19092
 
   # 3. MySQL 데이터베이스
   mysql:
@@ -117,10 +117,15 @@ services:
 
   # 5. Kafka (Zookeeper 없는 KRaft 모드)
   kafka:
-    image: bitnami/kafka:latest
+    image: bitnami/kafka:3.6.1
     container_name: kafka
     ports:
-      - "9092:9092"
+      - "19092:19092" # 내부 통신용 리스너(INTERNAL)
+      - "9092:9092" # 외부 통신용 리스너(EXTERNAL)
+      - "9094:9094" # SSL Listener
+      - "9095:9095" # SASL_SSL Listener
+    volumes:
+      - ./kafka/certs:/bitnami/kafka/config/certs # Mount certificates
     networks:
       - insurance-network
     environment:
@@ -128,21 +133,50 @@ services:
       KAFKA_CFG_NODE_ID: 1
       KAFKA_CFG_PROCESS_ROLES: broker,controller
       KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_CFG_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://172.24.96.243:9092
       KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+  # ssl_sasl 사용시 아래 설정값 주석처리 후 진행
+  # ✅ 내부/외부 리스너 분리 설정
+  # INTERNAL: Docker Compose 네트워크 내부 통신용 (schema-registry, insurance-app 등)
+  # EXTERNAL: Docker 네트워크 외부 통신용 (Kubernetes, 로컬 PC 등)
+      KAFKA_CFG_LISTENERS: INTERNAL://0.0.0.0:19092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://172.24.96.243:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      # ✅ [추가될 부분] 브로커 간 통신에 사용할 리스너 이름을 지정합니다. (내부 리스너 사용)
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+      # PLAINTEXT 사용시 아래 설정값 주석처리 후 진행
+#      KAFKA_CFG_LISTENERS: PLAINTEXT://0.0.0.0:9092,SSL://0.0.0.0:9094,SASL_SSL://0.0.0.0:9095,CONTROLLER://0.0.0.0:9093
+#      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://172.24.96.243:9092,SSL://172.24.96.243:9094,SASL_SSL://172.24.96.243:9095
+#      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_SSL:SASL_SSL
+#      KAFKA_CFG_SSL_KEYSTORE_LOCATION: /bitnami/kafka/config/certs/kafka.keystore.jks
+#      KAFKA_CFG_SSL_KEYSTORE_PASSWORD: changeit
+#      KAFKA_CFG_SSL_TRUSTSTORE_LOCATION: /bitnami/kafka/config/certs/kafka.truststore.jks
+#      KAFKA_CFG_SSL_TRUSTSTORE_PASSWORD: changeit
+#      KAFKA_CFG_SSL_CLIENT_AUTH: required # 클라이언트 인증서 요구 (mTLS)
+#      KAFKA_CFG_SASL_ENABLED_MECHANISMS: PLAIN
+#      KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+
+#      # ✅ Bitnami 헬퍼 변수를 사용하여 SASL 사용자를 정의합니다.
+#      # 형식: KAFKA_CLIENT_USERS: <user1>,<user2>
+#      #       KAFKA_CLIENT_PASSWORDS: <password1>,<password2>
+#      KAFKA_CLIENT_USERS: admin
+#      KAFKA_CLIENT_PASSWORDS: admin
+
+      # 아래 JAAS_CONFIG 설정은 클라이언트 측에서 사용하는 것이며, 브로커 설정에는 부적합합니다.
+      # KAFKA_CFG_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"admin\" password=\"admin\";"
+      # KAFKA_CFG_LISTENER_NAME_SASL_SSL_PLAIN_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"admin\" password=\"admin\";"
       KAFKA_CFG_LOG_DIRS: /bitnami/kafka/data
       KAFKA_CFG_DELETE_TOPIC_ENABLE: "true"
+    command: ["/opt/bitnami/scripts/kafka/run.sh"]
     healthcheck:
-      test: ["CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
+      test: ["CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 90s
+      retries: 5
+      start_period: 30s
+    
+
 
   # 6. Jenkins (CI/CD 서버)
   jenkins:
@@ -176,7 +210,8 @@ services:
     networks:
       - insurance-network
     environment:
-      - KAFKA_SERVER=kafka:9092
+      # ✅ 내부 통신용 리스너(kafka:19092)를 바라보도록 수정
+      - KAFKA_SERVER=kafka:19092
     depends_on:
       kafka:
         condition: service_healthy
@@ -225,7 +260,9 @@ services:
         condition: service_healthy
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:9092
+      # ✅ 내부 통신용 리스너(kafka:19092)를 바라보도록 수정하고, 보안 프로토콜을 별도로 명시
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:19092
+      SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: PLAINTEXT
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8085
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8085/subjects"]
