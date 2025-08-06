@@ -1,0 +1,24 @@
+apiVersion: kafka.strimzi.io/v1beta2 # Strimzi Kafka 리소스의 API 버전
+kind: Kafka # 배포할 리소스의 종류는 Kafka 클러스터입니다.
+metadata:
+  name: my-cluster # Kafka 클러스터의 이름
+  namespace: kafka # Kafka 클러스터가 배포될 Kubernetes 네임스페이스
+  annotations:
+    strimzi.io/kraft: enabled  ## KRaft 모드 활성화 (ZooKeeper 없이 Kafka 실행)
+    strimzi.io/node-pools: enabled # KafkaNodePool 리소스를 사용하여 노드를 관리함을 명시
+spec: # Kafka 클러스터의 사양 정의
+  kafka: # Kafka 브로커 관련 설정
+    version: 3.9.0 # 사용할 Kafka 브로커의 버전
+    listeners: # Kafka 클라이언트가 브로커에 연결하는 방법을 정의
+      - name: plain # 리스너의 이름 (일반 텍스트 통신)
+        port: 9092 # 리스너가 사용할 포트
+        type: cluster-ip
+        tls: false # TLS (SSL) 암호화 사용 여부 (false는 일반 텍스트)
+      - name: tls # TLS 리스너의 이름 (암호화된 통신)
+        port: 9093 # TLS 리스너가 사용할 포트
+        type: internal # 클러스터 내부에서만 접근 가능한 리스너
+        tls: true # TLS (SSL) 암호화 사용 여부 (true는 TLS 사용)
+    config:
+      advertised.listeners: PLAIN://my-cluster-broker-plain-0.kafka.svc:9092,PLAIN://my-cluster-broker-plain-1.kafka.svc:9092,PLAIN://my-cluster-broker-plain-2.kafka.svc:9092,TLS://my-cluster-kafka-bootstrap.kafka.svc.cluster.local:9093
+      log4j.rootLogger: DEBUG, CONSOLE
+      log4j.logger.kafka: DEBUG

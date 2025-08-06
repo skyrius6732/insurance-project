@@ -1,0 +1,41 @@
+apiVersion: kafka.strimzi.io/v1beta2 # Strimzi KafkaNodePool 리소스의 API 버전
+kind: KafkaNodePool # 배포할 리소스의 종류는 KafkaNodePool입니다.
+metadata:
+  name: controller # 컨트롤러 노드 풀의 이름
+  namespace: kafka # 노드 풀이 배포될 Kubernetes 네임스페이스
+  labels:
+    strimzi.io/cluster: my-cluster # 이 노드 풀이 속한 Kafka 클러스터의 이름
+spec:
+  replicas: 3 # 컨트롤러 노드 풀의 복제본 수 (3개 권장)
+  roles: # 이 노드 풀의 역할 (컨트롤러 역할)
+    - controller
+  resources: # ✅ [수정] 리소스 제한 설정
+    limits:
+      memory: 3Gi # 메모리 제한을 3Gi로 늘립니다.
+    requests:
+      memory: 2Gi # 메모리 요청을 2Gi로 설정합니다.
+  storage: # 컨트롤러 노드의 스토리지 설정
+    type: persistent-claim # 영구 볼륨 클레임 사용
+    size: 10Gi # 각 컨트롤러 노드에 할당될 스토리지 크기
+    deleteClaim: true # 노드 풀 삭제 시 PVC 삭제 여부 (false는 데이터 보존)
+---
+apiVersion: kafka.strimzi.io/v1beta2 # Strimzi KafkaNodePool 리소스의 API 버전
+kind: KafkaNodePool # 배포할 리소스의 종류는 KafkaNodePool입니다.
+metadata:
+  name: broker # 브로커 노드 풀의 이름
+  namespace: kafka # 노드 풀이 배포될 Kubernetes 네임스페이스
+  labels:
+    strimzi.io/cluster: my-cluster # 이 노드 풀이 속한 Kafka 클러스터의 이름
+spec:
+  replicas: 3 # 브로커 노드 풀의 복제본 수
+  roles: # 이 노드 풀의 역할 (브로커 역할)
+    - broker
+  resources:
+    limits:
+      memory: 3Gi # 메모리 제한을 3Gi로 늘립니다.
+    requests:
+      memory: 2Gi # 메모리 요청을 2Gi로 설정합니다.
+  storage: # 브로커 노드의 스토리지 설정
+    type: persistent-claim # 영구 볼륨 클레임 사용
+    size: 10Gi # 각 브로커 노드에 할당될 스토리지 크기
+    deleteClaim: true # 노드 풀 삭제 시 PVC 삭제 여부 (false는 데이터 보존)
