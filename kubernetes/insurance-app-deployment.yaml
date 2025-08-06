@@ -21,8 +21,10 @@ spec:
         ports:
         - containerPort: 8080
         env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "default"
         - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
-          value: "my-cluster-kafka-bootstrap.kafka:9092"
+          value: "my-cluster-kafka-plain-bootstrap.kafka:9092"
         - name: SPRING_KAFKA_PROPERTIES_SCHEMA_REGISTRY_URL
           value: "http://schema-registry.kafka:8081"
         - name: SPRING_DATASOURCE_URL
@@ -36,10 +38,6 @@ spec:
         - name: SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT
           value: "org.hibernate.dialect.H2Dialect"
         - name: SPRING_REDIS_HOST
-          value: "172.24.96.243"
+          value: "redis"
         - name: SPRING_REDIS_PORT
           value: "6379"
-        - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
-          value: "172.24.96.243:9092"
-        - name: SPRING_KAFKA_PROPERTIES_SCHEMA_REGISTRY_URL
-          value: "http://172.24.96.243:8085"
