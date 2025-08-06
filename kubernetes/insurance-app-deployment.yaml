@@ -17,7 +17,7 @@ spec:
       containers:
       - name: insurance-app
         image: skyrius6732/insurance-project:latest
-        imagePullPolicy: IfNotPresent # 로컬에 없으면 가져오도록 설정
+        imagePullPolicy: IfNotPresent # 로컬에 없으면 가져오도록 설정함
         ports:
         - containerPort: 8080
         env:
