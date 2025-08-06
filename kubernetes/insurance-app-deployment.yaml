@@ -21,6 +21,10 @@ spec:
         ports:
         - containerPort: 8080
         env:
+        - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+          value: "my-cluster-kafka-bootstrap.kafka:9092"
+        - name: SPRING_KAFKA_PROPERTIES_SCHEMA_REGISTRY_URL
+          value: "http://schema-registry.kafka:8081"
         - name: SPRING_DATASOURCE_URL
           value: "jdbc:h2:mem:testdb"
         - name: SPRING_DATASOURCE_DRIVER_CLASS_NAME
