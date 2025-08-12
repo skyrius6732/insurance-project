@@ -7,6 +7,7 @@ pipeline {
 apiVersion: v1
 kind: Pod
 spec:
+  serviceAccountName: jenkins-agent-sa
   containers:
   - name: maven
     image: gradle:7.6-jdk17
