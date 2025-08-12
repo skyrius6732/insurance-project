@@ -73,7 +73,24 @@ spec:
                     echo 'Pushing Docker image to Docker Hub...'
                     // Docker Hub에 로그인 (젠킨스 Credentials에 Docker Hub 자격 증명 추가 필요)
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        sh "ls -l /usr/local/bin/docker"
+
+                          echo "--- Docker Diagnostic Start ---"
+                          sh """
+                            set -x # 실행되는 명령어를 출력합니다.
+                            echo "PATH: $PATH"
+                            echo "--- ls -l /usr/local/bin/docker ---"
+                            ls -l /usr/local/bin/docker || true # 오류 발생해도 계속 진행
+                            echo "--- find / -name docker ---"
+                            find / -name docker 2>/dev/null || true # 오류 발생해도 계속 진행
+                            echo "--- /usr/local/bin/docker version (direct) ---"
+                            /usr/local/bin/docker version || true # 오류 발생해도 계속 진행
+                            echo "--- /usr/local/bin/docker login (direct) ---"
+                            echo "$DOCKER_PASSWORD" | /usr/local/bin/docker login -u "$DOCKER_USERNAME" --password-stdin || true # 오류 발생해도 계속
+
+                          echo "--- Docker Diagnostic End ---"
+                          """
+
+
                         // sh "echo \"$DOCKER_PASSWORD\" | /usr/local/bin/docker login -u \"$DOCKER_USERNAME\" --password-stdin"
                         // 일단은 로그인 없이 푸시 (공개 저장소라면 가능)
                         // sh "docker push skyrius6732/insurance-project:latest"
