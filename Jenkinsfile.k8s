@@ -20,15 +20,15 @@ spec:
     - name: docker-sock
       mountPath: /var/run/docker.sock
   - name: kubectl
-    image: bitnami/kubectl:latest
+    image: bitnami/kubectl:k8s-kubectl
     command: ['sleep', 'infinity']
     tty: true
     resources:
         requests:
-          memory: "128Mi"
+          memory: "1Gi"
           cpu: "100m"
         limits:
-          memory: "256Mi"
+          memory: "512Mi"
           cpu: "200m"
   volumes:
   - name: docker-sock
