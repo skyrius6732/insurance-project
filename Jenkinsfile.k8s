@@ -10,15 +10,18 @@ spec:
   containers:
   - name: maven
     image: gradle:7.6-jdk17
+    command: ['sleep', 'infinity']
     tty: true
   - name: docker
     image: docker:latest
+    command: ['sleep', 'infinity']
     tty: true
     volumeMounts:
     - name: docker-sock
       mountPath: /var/run/docker.sock
   - name: kubectl
     image: bitnami/kubectl:latest
+    command: ['sleep', 'infinity']
     tty: true
   volumes:
   - name: docker-sock
