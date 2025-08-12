@@ -1,6 +1,7 @@
 package com.example.insurance_project.kafka;
 
 import com.example.insurance_project.kafka.avro.InsuranceEvent;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,9 +26,15 @@ public class ExternalApiDataScheduler {
     @Value("${faker.api.url}")
     private String fakerApiUrl;
 
+    private volatile boolean running = true; // <--- Add this flag
+
     // 10초마다 실행
     @Scheduled(fixedRate = 10000)
     public void fetchAndProduceData() {
+        if (!running) { // <--- Check flag before executing
+            log.info("Scheduler is stopping, skipping data fetch.");
+            return;
+        }
         log.info("Fetching data from Faker API...");
 
         fetchFakeInsuranceData()
@@ -77,5 +84,12 @@ public class ExternalApiDataScheduler {
             log.error("Failed to transform data to InsuranceEvent: {}", data, e);
             return Flux.empty();
         }
+    }
+
+    @PreDestroy // <--- Add this method
+    public void onShutdown() {
+        log.info("ExternalApiDataScheduler is shutting down.");
+        this.running = false; // Set flag to false to prevent new tasks
+        // Optionally, add a short delay or wait for active tasks to complete
     }
 }
