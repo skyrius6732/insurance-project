@@ -34,7 +34,7 @@ spec:
     stages {
         stage('Checkout') {
             steps {
-                echo '--- Stage: Checkout ---
+                echo '--- Stage: Checkout ---'
                 git branch: 'master', url: 'https://github.com/skyrius6732/insurance-project.git'
             }
         }
@@ -52,7 +52,7 @@ spec:
         stage('Build Docker Image') {
             steps {
                 script {
-                     echo '--- Stage: Build Docker Image ---
+                     echo '--- Stage: Build Docker Image ---'
                      echo 'Building Docker image for insurance-project...'
                     // Dockerfile이 있는 디렉토리로 이동
                     container('docker'){
@@ -69,7 +69,7 @@ spec:
         stage('Push Docker Image') {
             steps {
                 script {
-                    echo '--- Stage: Push Docker Image ---
+                    echo '--- Stage: Push Docker Image ---'
                     echo 'Pushing Docker image to Docker Hub...'
                     // Docker Hub에 로그인 (젠킨스 Credentials에 Docker Hub 자격 증명 추가 필요)
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
