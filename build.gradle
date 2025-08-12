@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	// 스프링부트 내장톰캣 포함 배포를 위해 jar 배포(default)
 //	id 'war'
-	id 'org.springframework.boot' version '3.5.3'
+	id 'org.springframework.boot' version '3.2.5'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id "com.github.davidmc24.gradle.plugin.avro" version "1.9.1"
 }
@@ -28,7 +28,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'org.springframework.boot:spring-boot-starter-tomcat'
-	implementation 'org.springframework.kafka:spring-kafka:3.3.7'
+	implementation 'org.springframework.kafka:spring-kafka'
 	implementation 'org.apache.kafka:kafka-streams'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -45,8 +45,7 @@ dependencies {
 		exclude group: 'org.apache.kafka', module: 'kafka-clients'
 	}
 
-	// Kafka clients version explicitly set to 3.8.1 for compatibility
-	implementation 'org.apache.kafka:kafka-clients:3.8.1'
+	// Kafka-clients will be managed by Spring Boot's dependency management
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

@@ -17,16 +17,40 @@ spec:
       containers:
       - name: insurance-app
         image: skyrius6732/insurance-project:latest
-        imagePullPolicy: IfNotPresent # 로컬에 없으면 가져오도록 설정함
+        imagePullPolicy: Always # 항상 최신 이미지를 가져오도록 설정
         ports:
         - containerPort: 8080
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: "default"
         - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
-          value: "my-cluster-kafka-plain-bootstrap.kafka:9092"
+          value: "my-cluster-kafka-saslssl-bootstrap.kafka:9095"
         - name: SPRING_KAFKA_PROPERTIES_SCHEMA_REGISTRY_URL
           value: "http://schema-registry.kafka:8081"
+        - name: SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL
+          value: "SASL_SSL"
+        - name: SPRING_KAFKA_PROPERTIES_SASL_MECHANISM
+          value: "SCRAM-SHA-512"
+        - name: SPRING_KAFKA_PROPERTIES_SASL_JAAS_CONFIG
+          valueFrom:
+            secretKeyRef:
+              name: insurance-app-user
+              key: sasl.jaas.config
+        - name: SPRING_KAFKA_PROPERTIES_REQUEST_TIMEOUT_MS
+          value: "60000" # 60초
+        - name: SPRING_KAFKA_PROPERTIES_DELIVERY_TIMEOUT_MS
+          value: "120000" # 120초
+        - name: SPRING_KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM
+          value: ""
+        - name: SPRING_KAFKA_SSL_TRUST_STORE_LOCATION
+          value: "file:/etc/kafka/secrets/ca.p12"
+        - name: SPRING_KAFKA_SSL_TRUST_STORE_TYPE
+          value: "PKCS12"
+        - name: SPRING_KAFKA_SSL_TRUST_STORE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: my-cluster-cluster-ca-cert
+              key: ca.password
         - name: SPRING_DATASOURCE_URL
           value: "jdbc:h2:mem:testdb"
         - name: SPRING_DATASOURCE_DRIVER_CLASS_NAME
@@ -41,3 +65,14 @@ spec:
           value: "redis"
         - name: SPRING_REDIS_PORT
           value: "6379"
+        - name: LOG_LEVEL_ORG_APACHE_KAFKA_CLIENTS
+          value: "DEBUG"
+        volumeMounts:
+        - name: kafka-truststore
+          mountPath: "/etc/kafka/secrets"
+          readOnly: true
+      volumes:
+      - name: kafka-truststore
+        secret:
+          secretName: my-cluster-cluster-ca-cert
+

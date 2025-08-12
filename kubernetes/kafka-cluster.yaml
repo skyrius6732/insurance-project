@@ -6,7 +6,11 @@ metadata:
   annotations:
     strimzi.io/kraft: enabled  ## KRaft 모드 활성화 (ZooKeeper 없이 Kafka 실행)
     strimzi.io/node-pools: enabled # KafkaNodePool 리소스를 사용하여 노드를 관리함을 명시
+    gemini-cli-force-reapply: "$(date +%s)" # 강제 재적용을 위한 더미 어노테이션
 spec: # Kafka 클러스터의 사양 정의
+  entityOperator:
+    topicOperator: {}
+    userOperator: {} # KafkaUser 리소스 관리를 위한 User Operator 활성화
   kafka: # Kafka 브로커 관련 설정
     version: 3.9.0 # 사용할 Kafka 브로커의 버전
     listeners: # Kafka 클라이언트가 브로커에 연결하는 방법을 정의
@@ -14,15 +18,17 @@ spec: # Kafka 클러스터의 사양 정의
         port: 9092 # 리스너가 사용할 포트
         type: cluster-ip
         tls: false # TLS (SSL) 암호화 사용 여부 (false는 일반 텍스트)
-        configuration:
-          bootstrap:
-            host: my-cluster-kafka-bootstrap.kafka.svc.cluster.local
-            port: 9092
       - name: tls # TLS 리스너의 이름 (암호화된 통신)
         port: 9093 # TLS 리스너가 사용할 포트
         type: internal # 클러스터 내부에서만 접근 가능한 리스너
         tls: true # TLS (SSL) 암호화 사용 여부 (true는 TLS 사용)
+      - name: saslssl # SASL_SSL 리스너의 이름
+        port: 9095 # SASL_SSL 리스너가 사용할 포트
+        type: cluster-ip
+        tls: true # TLS (SSL) 암호화 사용
+        authentication: # SASL 인증 설정
+          type: scram-sha-512 # SCRAM-SHA-512 메커니즘 사용
     config:
-      advertised.listeners: PLAIN://my-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092,TLS://my-cluster-kafka-bootstrap.kafka.svc.cluster.local:9093
+      allow.everyone.if.no.acl.found: true
       log4j.rootLogger: DEBUG, CONSOLE
       log4j.logger.kafka: DEBUG

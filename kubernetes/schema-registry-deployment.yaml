@@ -16,6 +16,12 @@ spec:
       volumes:
         - name: schema-registry-config
           emptyDir: {}
+        - name: kafka-truststore
+          secret:
+            secretName: my-cluster-cluster-ca-cert
+        - name: kafka-user-credentials
+          secret:
+            secretName: insurance-app-user
 
       initContainers:
         - name: config-writer
@@ -26,9 +32,24 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: SASL_JAAS_CONFIG
+              valueFrom:
+                secretKeyRef:
+                  name: insurance-app-user
+                  key: sasl.jaas.config
+            - name: TRUSTSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: my-cluster-cluster-ca-cert
+                  key: ca.password
           args:
-            - |
-              echo "kafkastore.bootstrap.servers=PLAINTEXT://my-cluster-broker-plain-0.kafka.svc:9092,PLAINTEXT://my-cluster-broker-plain-1.kafka.svc:9092,PLAINTEXT://my-cluster-broker-plain-2.kafka.svc:9092" > /config/schema-registry.properties && \
+            - | 
+              echo "kafkastore.bootstrap.servers=my-cluster-kafka-saslssl-bootstrap.kafka:9095" > /config/schema-registry.properties && \
+              echo "kafkastore.security.protocol=SASL_SSL" >> /config/schema-registry.properties && \
+              echo "kafkastore.sasl.mechanism=SCRAM-SHA-512" >> /config/schema-registry.properties && \
+              echo "kafkastore.sasl.jaas.config=${SASL_JAAS_CONFIG}" >> /config/schema-registry.properties && \
+              echo "kafkastore.ssl.truststore.location=/etc/kafka/secrets/ca.p12" >> /config/schema-registry.properties && \
+              echo "kafkastore.ssl.truststore.password=${TRUSTSTORE_PASSWORD}" >> /config/schema-registry.properties && \
               echo "host.name=${POD_NAME}" >> /config/schema-registry.properties && \
               echo "listeners=http://0.0.0.0:8081" >> /config/schema-registry.properties && \
               echo "log4j.root.logger=INFO, stdout" >> /config/schema-registry.properties
@@ -45,6 +66,9 @@ spec:
             - name: schema-registry-config
               mountPath: /etc/schema-registry/schema-registry.properties
               subPath: schema-registry.properties
+            - name: kafka-truststore
+              mountPath: /etc/kafka/secrets
+              readOnly: true
           command: ["/bin/bash", "-c"]
           args:
             - |

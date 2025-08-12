@@ -1,0 +1,29 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: insurance-app-user
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+  annotations:
+    gemini-cli-force-reconcile: "$(date +%s)" # Operator 재처리를 위한 더미 어노테이션
+spec:
+  authentication:
+    type: scram-sha-512
+  authorization:
+    type: simple
+    acls:
+      # Allow access to all topics
+      - resource:
+          type: topic
+          name: "*"
+          patternType: literal
+        operation: All
+        host: "*"
+      # Allow access to all consumer groups
+      - resource:
+          type: group
+          name: "*"
+          patternType: literal
+        operation: All
+        host: "*"
