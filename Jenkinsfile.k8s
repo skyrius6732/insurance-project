@@ -99,12 +99,12 @@ spec:
                     echo '--- Stage: Deploy to Kubernetes ---'
                     container('kubectl'){ //kubectl 명령을 kubectl 컨테이너에서 실행
                         echo 'Applying Kubernetes manifests...'
-                        sh 'kubectl apply -f kubernetes/insurance-app-deployment.yaml --v=6'
-                        sh 'kubectl apply -f kubernetes/insurance-app-service.yaml --v=6'
-                        sh 'kubectl apply -f kubernetes/insurance-app-ingress.yaml --v=6' // Assuming Ingress is also part of deployment
+                        sh 'kubectl apply -f kubernetes/insurance-app-deployment.yaml -n default --v=6'
+                        sh 'kubectl apply -f kubernetes/insurance-app-service.yaml -n default --v=6'
+                        sh 'kubectl apply -f kubernetes/insurance-app-ingress.yaml -n default --v=6' // Assuming Ingress is also part of deployment
 
                         echo 'Waiting for deployment to rollout...'
-                        sh 'kubectl rollout status deployment/insurance-app-deployment --timeout=5m'
+                        sh 'kubectl rollout status deployment/insurance-app-deployment -n default --timeout=5m'
 
                         echo 'Deployment to Kubernetes completed.'
                     }
