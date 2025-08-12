@@ -1,0 +1,106 @@
+pipeline {
+    agent {
+        kubernetes {
+            cloud 'minikube'
+            defaultContainer 'maven'
+            yaml '''
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: maven
+    image: maven:3.8.6-openjdk-17
+    command: ['cat']
+    tty: true
+  - name: docker
+    image: docker:latest
+    command: ['cat']
+    tty: true
+    volumeMounts:
+    - name: docker-sock
+      mountPath: /var/run/docker.sock
+  - name: kubectl
+    image: bitnami/kubectl:latest
+    command: ['cat']
+    tty: true
+  volumes:
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+'''
+        }
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '--- Stage: Checkout ---
+                git branch: 'master', url: 'https://github.com/skyrius6732/insurance-project.git'
+            }
+        }
+        stage('Build') {
+            tools {
+                jdk 'JDK17' // 젠킨스 Tools 설정에서 지정한 JDK 이름과 일치해야 합니다.
+            }
+            steps {
+                sh 'echo "JAVA_HOME is: $JAVA_HOME"'
+                sh '$JAVA_HOME/bin/java -version'
+                sh 'chmod +x gradlew'
+                sh './gradlew clean build -Dorg.gradle.java.home=$JAVA_HOME'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                     echo '--- Stage: Build Docker Image ---
+                     echo 'Building Docker image for insurance-project...'
+                    // Dockerfile이 있는 디렉토리로 이동
+                    container('docker'){
+                        dir('.') {
+                            // Docker 이미지 빌드
+                            // skyrius6732/insurance-project:latest 대신 실제 Docker Hub 사용자 이름과 이미지 이름을 사용하세요.
+                            sh 'cat Dockerfile'
+                            sh "docker build --no-cache -t skyrius6732/insurance-project:latest ."
+                        }
+                    }
+                }
+            }
+        }
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    echo '--- Stage: Push Docker Image ---
+                    echo 'Pushing Docker image to Docker Hub...'
+                    // Docker Hub에 로그인 (젠킨스 Credentials에 Docker Hub 자격 증명 추가 필요)
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        sh "echo \"$DOCKER_PASSWORD\" | docker login -u \"$DOCKER_USERNAME\" --password-stdin"
+                        // 일단은 로그인 없이 푸시 (공개 저장소라면 가능)
+                        sh "docker push skyrius6732/insurance-project:latest"
+                        // 선택 사항 : 푸시 후 로그아웃(보안상권장)
+                        sh "docker logout"
+                    }
+
+                }
+            }
+        }
+        stage('Deploy to Kubernetes') {
+            steps{
+                script{
+                    echo '--- Stage: Deploy to Kubernetes ---'
+                    container('kubectl'){ //kubectl 명령을 kubectl 컨테이너에서 실행
+                        echo 'Applying Kubernetes manifests...'
+                        sh 'kubectl apply -f kubernetes/insurance-app-deployment.yaml'
+                        sh 'kubectl apply -f kubernetes/insurance-app-service.yaml'
+                        sh 'kubectl apply -f kubernetes/insurance-app-ingress.yaml' // Assuming Ingress is also part of deployment
+
+                        echo 'Waiting for deployment to rollout...'
+                        sh 'kubectl rollout status deployment/insurance-app-deployment --timeout=5m'
+
+                        echo 'Deployment to Kubernetes completed.'
+                    }
+                }
+            }
+        }
+
+    }
+}
