@@ -20,7 +20,7 @@ spec:
     - name: docker-sock
       mountPath: /var/run/docker.sock
   - name: kubectl
-    image: bitnami/kubectl:k8s-kubectl
+    image: lachlanevenson/k8s-kubectl:v1.28.3
     command: ['sleep', 'infinity']
     tty: true
     resources:
