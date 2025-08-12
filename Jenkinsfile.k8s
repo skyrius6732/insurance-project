@@ -9,7 +9,7 @@ kind: Pod
 spec:
   containers:
   - name: maven
-    image: maven:3.8.6-openjdk-17
+    image: maven:3.8.6-openjdk-17-slim-buster
     command: ['cat']
     tty: true
   - name: docker
